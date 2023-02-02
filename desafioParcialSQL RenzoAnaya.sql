@@ -32,11 +32,6 @@ idCategoria INT auto_increment not null primary key,
 descripcionCategoria VARCHAR(40)
 );
 
-create table IF NOT EXISTS disponibilidad (
-idDisponibilidad INT auto_increment not null primary key,
-descripcionDisponibilidad VARCHAR(70)
-);
-
 create table IF NOT EXISTS producto (
 idProduct INT auto_increment not null primary key,
 nombreProducto VARCHAR(40) not null,
@@ -45,19 +40,22 @@ idCategoria INT not null,
 idTamano INT,
 idMadurez INT,
 idEstacionalidad INT not null,
-idDisponibilidad INT not null,
 foreign key (idCategoria) references categoria(idCategoria),
 foreign key (idTamano) references tamano(idTamano),
 foreign key (idMadurez) references madurez(idMadurez),
-foreign key (idEstacionalidad) references estacionalidad(idEstacionalidad),
-foreign key (idDisponibilidad) references disponibilidad(idDisponibilidad)
+foreign key (idEstacionalidad) references estacionalidad(idEstacionalidad)
+);
+
+create table IF NOT EXISTS stock (
+idStock INT auto_increment not null primary key,
+idProduct INT not null,
+numeroStock numeric,
+foreign key (idProduct) references producto(idProduct)
 );
 
 create table IF NOT EXISTS delivery (
 idDelivery INT auto_increment not null primary key,
-deliveryDate DATE not null,
-idProduct INT not null,
-foreign key (idProduct) references producto(idProduct)
+deliveryDate DATE not null
 );
 
 create table IF NOT EXISTS orden (
