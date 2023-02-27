@@ -63,12 +63,19 @@ idDelivery INT auto_increment not null primary key,
 deliveryDate DATE not null
 );
 
+create table IF NOT EXISTS estado (
+idStatus INT auto_increment not null primary key,
+descripcionStatus varchar(40) not null
+);
+
 create table IF NOT EXISTS orden (
 idOrder INT auto_increment not null primary key,
 idUsuario INT not null,
 idDelivery INT not null,
+idStatus INT not null,
 foreign key (idUsuario) references usuario(idUsuario),
-foreign key (idDelivery) references delivery(idDelivery)
+foreign key (idDelivery) references delivery(idDelivery),
+foreign key(idStatus) references estado(idStatus)
 );
 
 create table IF NOT EXISTS productosOrden (
@@ -135,29 +142,32 @@ insert into delivery (idDelivery, deliveryDate) values
 (2, "2023-02-09"),
 (3, "2023-02-10");
 
-insert into orden (idOrder, idUsuario, idDelivery) values
-(1, "2","1"),
-(2, "1","1"),
-(3, "3","2"),
-(4, "4","2"),
-(5, "5","2");
+insert into estado (idStatus, descripcionStatus) values
+(1,"pendiente"),
+(2,"terminado"),
+(3,"con problemas");
+
+insert into orden (idOrder, idUsuario, idDelivery, idStatus) values
+(1, "2","1",1),
+(2, "1","1",2),
+(3, "3","2",1),
+(4, "4","2",1),
+(5, "5","2",2);
 
 insert into productosOrden (idOrder, idProduct, idTamano, idMadurez, cantidad) values
 ("1","1", null, null, "1"),
-("1","2", "2", null, "1"),
-("1","3", null, null, "1"),
-("1","4", "2", "1", "1"),
+("1","2", "2", null, "2"),
+("1","3", null, null, "6"),
+("1","4", "2", "1", "5"),
 ("2","1", null, null, "1"),
-("2","3", null, null, "1"),
+("2","3", null, null, "4"),
 ("2","4", "3", "2", "1"),
-("3","2", "1", null, "1"),
+("3","2", "1", null, "3"),
 ("3","1", null, null, "1"),
-("4","3", null, null, "1"),
+("4","3", null, null, "2"),
 ("4","5", null, null, "1");
 
 
-
-select * from usuario;
 
 DELIMITER //
 create function diferenciaPrecio(costo numeric(10,2), precio numeric(10,2)) returns numeric(10,2)
@@ -204,3 +214,23 @@ select numeroStock,
 actualizarStock(numeroStock) actualizar
 from stock;
 
+create or replace view productosMasComprados as
+select 
+T1.nombreProducto, 
+T2.cantidad cantidad
+from producto T1
+left join productosOrden T2
+on T1.idProduct = T2.idProduct
+order by cantidad desc;
+
+select * from productosMasComprados;
+
+
+DELIMITER //
+create procedure pedidosPendientes()
+begin
+select * from orden WHERE idStatus = 1 ;
+end;
+//
+
+call pedidosPendientes()
