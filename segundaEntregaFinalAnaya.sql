@@ -92,6 +92,7 @@ foreign key (idMadurez) references madurez(idMadurez)
 );
 
 
+
 insert into usuario (nombre, apellido, telefono, mail, direccion) values
 ("Juan", "Dominguez", "947888444","reree@gmail.com", "Avenida Juan chavez 543"),
 ("Juana", "Martinez", "987654622","dfdfdf@gmail.com", "Jiron calua 333"),
@@ -168,6 +169,78 @@ insert into productosOrden (idOrder, idProduct, idTamano, idMadurez, cantidad) v
 ("4","5", null, null, "1");
 
 
+DELIMITER //
+create procedure pedidosPendientes()
+begin
+select * from orden WHERE idStatus = 1 ;
+end;
+//
+
+
+
+DELIMITER //
+create trigger checkMail
+before insert on usuario
+for each row
+begin
+	if new.mail not like '%@%.%' then
+    signal sqlstate'45000'
+    set MESSAGE_TEXT="Correo inválido";
+    end if;
+
+end;
+//
+
+DELIMITER //
+create trigger checkSimilarMail
+before insert on usuario
+for each row
+begin
+	if new.mail IN(select mail from usuario) then
+    signal sqlstate'45000'
+    set MESSAGE_TEXT="Correo ya existente";
+    end if;
+
+end;
+//
+
+
+DELIMITER //
+create trigger checkPhoneNum
+before insert on usuario
+for each row
+begin
+	if new.telefono < 900000000 then
+    signal sqlstate'45000'
+    set MESSAGE_TEXT="Número inválido";
+    end if;
+end;
+//
+
+DELIMITER //
+create trigger validPhone
+before insert on usuario
+for each row
+begin
+	if new.telefono not like '9%' then
+    signal sqlstate'45000'
+    set MESSAGE_TEXT="Número no válido en Perú";
+    end if;
+end;
+//
+
+DELIMITER //
+create trigger checkPhone
+before insert on usuario
+for each row
+begin
+	if new.telefono IN(select telefono from usuario) then
+    signal sqlstate'45000'
+    set MESSAGE_TEXT="Número ya registrado";
+    end if;
+
+end;
+//
 
 DELIMITER //
 create function diferenciaPrecio(costo numeric(10,2), precio numeric(10,2)) returns numeric(10,2)
@@ -223,14 +296,7 @@ left join productosOrden T2
 on T1.idProduct = T2.idProduct
 order by cantidad desc;
 
+
+call pedidosPendientes();
+
 select * from productosMasComprados;
-
-
-DELIMITER //
-create procedure pedidosPendientes()
-begin
-select * from orden WHERE idStatus = 1 ;
-end;
-//
-
-call pedidosPendientes()
